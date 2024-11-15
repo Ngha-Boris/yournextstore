@@ -14,7 +14,8 @@ export const metadata = {
 } satisfies Metadata;
 
 export default async function Home() {
-	const products = await Commerce.productBrowse({ first: 6 });
+	const products = (await Commerce.productBrowse({ first: 6 })).filter(({ metadata }) => metadata?.slug);
+
 	const t = await getTranslations("/");
 
 	return (

@@ -9,18 +9,20 @@ const Categories = [
 
 type Item = MetadataRoute.Sitemap[number];
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const products = await Commerce.productBrowse({ first: 100 });
-	const productUrls = products.map(
-		(product) =>
-			({
-				url: `${publicUrl}/product/${product.metadata.slug}`,
-				lastModified: new Date(product.updated * 1000),
-				changeFrequency: "daily",
-				priority: 0.8,
-			}) satisfies Item,
-	);
+	const products = await Commerce.productBrowse({ first: 1000 });
+	const productUrls = products
+		.filter(({ metadata }) => metadata?.slug)
+		.map(
+			(product) =>
+				({
+					url: `${publicUrl}/product/${product.metadata.slug}`,
+					lastModified: new Date(product.updated * 1000),
+					changeFrequency: "daily",
+					priority: 0.8,
+				}) satisfies Item,
+		);
 
-	const categoryUrls = Categories.map(
+	const categoryUrls = Categories.filter(({ slug }) => slug).map(
 		(category) =>
 			({
 				url: `${publicUrl}/category/${category.slug}`,

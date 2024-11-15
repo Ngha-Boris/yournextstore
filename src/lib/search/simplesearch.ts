@@ -29,6 +29,7 @@ function simpleSearchMatch(query: string, value: null | undefined | string): num
 export function simpleSearch(products: Commerce.MappedProduct[], query: string) {
 	const escapedQuery = escapeRegExp(query);
 	const matches = products
+		.filter(({ metadata }) => metadata?.slug)
 		.flatMap((product) => {
 			const fieldsWithWeights = [
 				[product.name, 1.5],

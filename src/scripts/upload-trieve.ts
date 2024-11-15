@@ -28,6 +28,10 @@ const data = await stripe.products.list({
 	expand: ["data.default_price"],
 });
 const chunks = mapProducts(data).flatMap((product): ChunkReqPayload | ChunkReqPayload[] => {
+	if (!product.metadata.slug) {
+		return [];
+	}
+
 	if (!product.default_price.unit_amount) {
 		return [];
 	}
