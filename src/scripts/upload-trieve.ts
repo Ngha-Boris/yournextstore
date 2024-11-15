@@ -3,6 +3,7 @@ import NextEnv from "@next/env";
 import * as Commerce from "commerce-kit";
 import { mapProducts } from "commerce-kit/internal";
 import { type ChunkReqPayload, TrieveSDK } from "trieve-ts-sdk";
+
 NextEnv.loadEnvConfig(".");
 
 const { env } = await import("@/env.mjs");
@@ -36,8 +37,8 @@ const chunks = mapProducts(data).flatMap((product): ChunkReqPayload | ChunkReqPa
 		return [];
 	}
 	const link = product.metadata.variant
-		? `/product/${product.metadata.slug}?variant=${product.metadata.variant}`
-		: `/product/${product.metadata.slug}`;
+		? `/product/${product.id}?variant=${product.metadata.variant}`
+		: `/product/${product.id}`;
 	return {
 		chunk_html: `
 Product Name: ${product.name}

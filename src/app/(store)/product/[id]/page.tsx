@@ -1,8 +1,8 @@
-import { ProductModel3D } from "@/app/(store)/product/[slug]/product-model3d";
+import { ProductModel3D } from "@/app/(store)/product/[id]/product-model3d";
 import { publicUrl } from "@/env.mjs";
 import { getLocale, getTranslations } from "@/i18n/server";
 import { getRecommendedProducts } from "@/lib/search/trieve";
-import { cn, deslugify, formatMoney, formatProductName } from "@/lib/utils";
+import { deslugify, formatMoney } from "@/lib/utils";
 import type { TrieveProductMetadata } from "@/scripts/upload-trieve";
 import { AddToCartButton } from "@/ui/add-to-cart-button";
 import { JsonLd, mappedProductToJsonLd } from "@/ui/json-ld";
@@ -21,47 +21,13 @@ import { YnsLink } from "@/ui/yns-link";
 import * as Commerce from "commerce-kit";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next/types";
 import { Suspense } from "react";
 
-export const generateMetadata = async (props: {
-	params: Promise<{ slug: string }>;
-	searchParams: Promise<{ variant?: string }>;
-}): Promise<Metadata> => {
-	const searchParams = await props.searchParams;
-	const params = await props.params;
-	const variants = await Commerce.productGet({ slug: params.slug });
-
-	const selectedVariant = searchParams.variant || variants[0]?.metadata.variant;
-	const product = variants.find((variant) => variant.metadata.variant === selectedVariant);
-	if (!product) {
-		return notFound();
-	}
-	const t = await getTranslations("/product.metadata");
-
-	const canonical = new URL(`${publicUrl}/product/${product.metadata.slug}`);
-	if (selectedVariant) {
-		canonical.searchParams.set("variant", selectedVariant);
-	}
-
-	const productName = formatProductName(product.name, product.metadata.variant);
-
-	return {
-		title: t("title", { productName }),
-		description: product.description,
-		alternates: { canonical },
-	} satisfies Metadata;
-};
-
 export default async function SingleProductPage(props: {
-	params: Promise<{ slug: string }>;
-	searchParams: Promise<{ variant?: string }>;
+	params: Promise<{ id: string }>;
 }) {
-	const searchParams = await props.searchParams;
 	const params = await props.params;
-	const variants = await Commerce.productGet({ slug: params.slug });
-	const selectedVariant = searchParams.variant || variants[0]?.metadata.variant;
-	const product = variants.find((variant) => variant.metadata.variant === selectedVariant);
+	const product = await Commerce.productGetById(params.id);
 
 	if (!product) {
 		return notFound();
@@ -95,14 +61,6 @@ export default async function SingleProductPage(props: {
 					<BreadcrumbItem>
 						<BreadcrumbPage>{product.name}</BreadcrumbPage>
 					</BreadcrumbItem>
-					{selectedVariant && (
-						<>
-							<BreadcrumbSeparator />
-							<BreadcrumbItem>
-								<BreadcrumbPage>{deslugify(selectedVariant)}</BreadcrumbPage>
-							</BreadcrumbItem>
-						</>
-					)}
 				</BreadcrumbList>
 			</Breadcrumb>
 
@@ -163,37 +121,6 @@ export default async function SingleProductPage(props: {
 								<Markdown source={product.description || ""} />
 							</div>
 						</section>
-
-						{variants.length > 1 && (
-							<div className="grid gap-2">
-								<p className="text-base font-medium" id="variant-label">
-									{t("variantTitle")}
-								</p>
-								<ul role="list" className="grid grid-cols-4 gap-2" aria-labelledby="variant-label">
-									{variants.map((variant) => {
-										const isSelected = selectedVariant === variant.metadata.variant;
-										return (
-											variant.metadata.variant && (
-												<li key={variant.id}>
-													<YnsLink
-														scroll={false}
-														prefetch={true}
-														href={`/product/${variant.metadata.slug}?variant=${variant.metadata.variant}`}
-														className={cn(
-															"flex cursor-pointer items-center justify-center gap-2 rounded-md border p-2 transition-colors hover:bg-neutral-100",
-															isSelected && "border-black bg-neutral-50 font-medium",
-														)}
-														aria-selected={isSelected}
-													>
-														{deslugify(variant.metadata.variant)}
-													</YnsLink>
-												</li>
-											)
-										);
-									})}
-								</ul>
-							</div>
-						)}
 
 						<AddToCartButton productId={product.id} disabled={product.metadata.stock <= 0} />
 					</div>

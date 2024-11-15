@@ -15,7 +15,9 @@ export const ElWithErrors = ({
 	label,
 	children,
 	...props
-}: Omit<ElWithErrorsProps, "children"> & { children: (props: InputProps) => ReactNode }) => {
+}: Omit<ElWithErrorsProps, "children"> & {
+	children: (props: InputProps) => ReactNode;
+}) => {
 	const currentErrors = errors && name && name in errors ? errors[name] : null;
 	const id = name ? `input-${name}` : undefined;
 
